@@ -31,8 +31,49 @@ First draft. Update this section in Phase 5 when polish revises the model, and n
 
 ```mermaid
 erDiagram
-  ENTITY ||--o{ OTHER : relates
+  Researcher ||--o{ Submission : submits
+  Submission ||--o| Review : receives
+  Reviewer ||--o{ Review : writes
+  Submission ||--o| Presentation : scheduled_as
+
+  Researcher {
+    int id PK
+    string name
+    string email
+  }
+  Submission {
+    int id PK
+    string title
+    string abstract
+    string submissionType
+    string filePath
+    string status
+    datetime submittedAt
+    int researcherId FK
+  }
+  Reviewer {
+    int id PK
+    string name
+    string email
+  }
+  Review {
+    int id PK
+    string feedback
+    string decision
+    datetime reviewedAt
+    int submissionId FK, UK
+    int reviewerId FK
+  }
+  Presentation {
+    int id PK
+    date date
+    time time
+    string location
+    int submissionId FK, UK
+  }
 ```
+
+Relationship and lifecycle rules: each submission belongs to one researcher, and a researcher may submit many (implied by `researcherId`). A submission has zero or one Review; `Review.submissionId` is unique, and each Review belongs to one Reviewer, who may review many submissions. A submission has zero or one Presentation; `Presentation.submissionId` is unique. `Submission.status` is separate from `Review.decision`: decisions are `Revision Required`, `Accepted`, or `Rejected`; statuses are `Submitted`, `Under Review`, `Revision Required`, `Accepted`, `Rejected`, or `Scheduled`. The review decision updates the submission status, and an accepted submission may become `Scheduled` when its Presentation is set. Field types are conventional draft assumptions inferred from the properties and can be refined later.
 
 ## Wireframes
 
