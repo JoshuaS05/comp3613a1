@@ -1,0 +1,38 @@
+{
+  "system": "Research Platform",
+  "actors": [
+    {"name": "Researcher", "side": "left"},
+    {"name": "Reviewer/Admin", "side": "right"}
+  ],
+  "use_cases": [
+    {
+      "name": "Submit Research",
+      "actors": ["Researcher"],
+      "includes": ["Upload Research File", "Add Abstract and Metadata"]
+    },
+    {"name": "Upload Research File"},
+    {"name": "Add Abstract and Metadata"},
+    {
+      "name": "Edit or Resubmit Research",
+      "actors": ["Researcher"],
+      "includes": ["Review Updated Submission", "Upload Updated File"]
+    },
+    {"name": "Review Updated Submission"},
+    {"name": "Upload Updated File"},
+    {
+      "name": "Manage Submissions",
+      "actors": ["Reviewer/Admin"],
+      "includes": ["Review Submission", "Record Review Decision", "Provide Feedback"]
+    },
+    {"name": "Review Submission"},
+    {"name": "Record Review Decision"},
+    {"name": "Provide Feedback"},
+    {
+      "name": "Track Submission and Presentation Status",
+      "actors": ["Researcher"],
+      "includes": ["View Status Timeline", "View Presentation Details"]
+    },
+    {"name": "View Status Timeline"},
+    {"name": "View Presentation Details"}
+  ]
+}

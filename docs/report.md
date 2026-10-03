@@ -6,15 +6,22 @@ Do not put your student ID in this file if you will commit it. The PDF cover add
 
 ## Assigned project
 
+Research Platform
+
 ## Three workflows
 
 ### 1.
+Submit research (researcher)
 
 ### 2.
+Manage submissions (reviewer/admin)
 
 ### 3.
+Track submission and presentation status (researcher)
 
 ## Use case diagram
+
+Use cases kept as separate top-level flows: Submit research, Manage submissions, and Track submission and presentation status. No workflow is shared across actors. The researcher can also edit or resubmit their own submission before review as a nested step rather than a fourth top-level use case.
 
 ![Use case diagram](diagrams/use-case.png)
 
