@@ -14,14 +14,34 @@ actor "Researcher" as Researcher
 
 rectangle "Research Platform" {
   usecase "Submit Research" as Submit_Research
+  usecase "Upload Research File" as Upload_Research_File
+  usecase "Add Abstract and Metadata" as Add_Abstract_and_Metadata
+  usecase "Edit or Resubmit Research" as Edit_or_Resubmit_Research
+  usecase "Review Updated Submission" as Review_Updated_Submission
+  usecase "Upload Updated File" as Upload_Updated_File
   usecase "Manage Submissions" as Manage_Submissions
+  usecase "Review Submission" as Review_Submission
+  usecase "Record Review Decision" as Record_Review_Decision
+  usecase "Provide Feedback" as Provide_Feedback
   usecase "Track Submission and Presentation Status" as Track_Submission_and_Presentation_Status
+  usecase "View Status Timeline" as View_Status_Timeline
+  usecase "View Presentation Details" as View_Presentation_Details
 }
 
 actor "Reviewer/Admin" as Reviewer_Admin
 
 Researcher -- Submit_Research
+Submit_Research ..> Upload_Research_File : <<include>>
+Submit_Research ..> Add_Abstract_and_Metadata : <<include>>
+Researcher -- Edit_or_Resubmit_Research
+Edit_or_Resubmit_Research ..> Review_Updated_Submission : <<include>>
+Edit_or_Resubmit_Research ..> Upload_Updated_File : <<include>>
 Reviewer_Admin -- Manage_Submissions
+Manage_Submissions ..> Review_Submission : <<include>>
+Manage_Submissions ..> Record_Review_Decision : <<include>>
+Manage_Submissions ..> Provide_Feedback : <<include>>
 Researcher -- Track_Submission_and_Presentation_Status
+Track_Submission_and_Presentation_Status ..> View_Status_Timeline : <<include>>
+Track_Submission_and_Presentation_Status ..> View_Presentation_Details : <<include>>
 
 @enduml
