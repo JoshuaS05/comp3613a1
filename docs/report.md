@@ -11,17 +11,29 @@ Research Platform
 ## Three workflows
 
 ### 1.
-Submit research (researcher)
+**Submit Research**
+
+- Actor: Researcher
+- Steps: Enter the submission title, abstract, and type; upload the research file; submit the research.
+- Done: The submission is saved with a submission date and `Submitted` status and is available for tracking.
 
 ### 2.
-Manage submissions (reviewer/admin)
+**Manage Submissions**
+
+- Actor: Reviewer/Admin
+- Steps: Open a submission; provide feedback; record a review decision.
+- Done: The review and decision are saved, and the submission status is updated to reflect the decision.
 
 ### 3.
-Track submission and presentation status (researcher)
+**Track Submission and Presentation Status**
+
+- Actor: Researcher
+- Steps: View the submission's current status; when a presentation is scheduled, view its date, time, and location.
+- Done: The current submission status is visible, along with presentation details when scheduled.
 
 ## Use case diagram
 
-Use cases kept as separate top-level flows: Submit research, Manage submissions, and Track submission and presentation status. No workflow is shared across actors. The researcher can also edit or resubmit their own submission before review as a nested step rather than a fourth top-level use case.
+The diagram keeps only the three principal use cases: Submit Research, Manage Submissions, and Track Submission and Presentation Status. Uploading a file, entering metadata, providing feedback, recording a decision, viewing status, and viewing presentation details are steps within those workflows, not separate use cases. Edit or resubmit may occur within the submission workflow before review. No workflow is shared across actors. The status step shows the current lifecycle state; status-history records are not part of the Phase 3 model.
 
 ![Use case diagram](diagrams/use-case.png)
 

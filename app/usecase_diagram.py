@@ -162,7 +162,6 @@ def to_plantuml(spec: DiagramSpec) -> str:
         )
     lines.append("")
 
-    actor_side = {actor.name: actor.side for actor in spec.actors}
     for case in spec.use_cases:
         uc_alias = aliases[f"uc:{case.name}"]
         for actor_name in case.actors:
@@ -170,10 +169,7 @@ def to_plantuml(spec: DiagramSpec) -> str:
             if actor_key not in aliases:
                 continue
             actor_alias = aliases[actor_key]
-            if actor_side.get(actor_name) == "right":
-                lines.append(f"{uc_alias} <-- {actor_alias}")
-            else:
-                lines.append(f"{actor_alias} --> {uc_alias}")
+            lines.append(f"{actor_alias} -- {uc_alias}")
         for included in case.includes:
             other = aliases.get(f"uc:{included}")
             if other:
