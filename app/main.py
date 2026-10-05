@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import FastAPI, Request, status
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import RedirectResponse
+from starlette.responses import PlainTextResponse
 
 from app.config import get_settings
 from app.routers import api_router, router, static_files, templates
@@ -47,10 +47,13 @@ async def recover_uninitialized_db(request: Request, call_next):
         logger.info("Retrying %s after database init", request.url.path)
         try:
             return await call_next(request)
-        except Exception:
-            # Schema exists now but the prior response may still need a refresh.
-            if request.method.upper() == "GET":
-                return RedirectResponse(url=str(request.url), status_code=303)
+        except Exception as retry_exc:
+            logger.exception("Request %s failed after database recovery", request.url.path)
+            if request.method.upper() == "GET" and is_db_not_ready_error(retry_exc):
+                return PlainTextResponse(
+                    "The application database is not ready. Please retry later.",
+                    status_code=503,
+                )
             raise
 
 

@@ -1,0 +1,43 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Edit or Resubmit Research{% endblock %}
+
+{% block subpage_content %}
+<section class="container-fluid py-2 submission-page">
+  <p class="research-eyebrow mb-1">My Submissions</p>
+  <h1 class="h3 mb-4">Edit or Resubmit Research</h1>
+
+  <form class="submission-form" method="POST" action="{{ url_for('resubmit_research', submission_id=submission.id) }}" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label class="form-label" for="title">Title</label>
+      <input class="form-control" type="text" id="title" name="title" value="{{ submission.title }}" maxlength="240" required>
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label" for="abstract">Abstract</label>
+      <textarea class="form-control" id="abstract" name="abstract" rows="5" required>{{ submission.abstract }}</textarea>
+    </div>
+
+    <fieldset class="mb-4">
+      <legend class="form-label mb-2">Type</legend>
+      <div class="d-flex flex-wrap gap-4">
+        {% for value in ["Poster", "Presentation"] %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" id="submission-type-{{ loop.index }}" name="submission_type" value="{{ value }}" {% if submission.submission_type == value %}checked{% endif %} required>
+          <label class="form-check-label" for="submission-type-{{ loop.index }}">{{ value }}</label>
+        </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <div class="mb-4">
+      <label class="form-label" for="updated-file">Updated File <span class="text-muted">(optional)</span></label>
+      <input class="form-control" type="file" id="updated-file" name="updated_file">
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('track_submission_view', submission_id=submission.id) }}">Cancel</a>
+      <button class="btn btn-primary" type="submit">Resubmit</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

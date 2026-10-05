@@ -53,3 +53,13 @@ async def is_admin_dep(user: AuthDep):
     return user
 
 AdminDep = Annotated[User, Depends(is_admin_dep)]
+
+async def is_reviewer_or_admin_dep(user: AuthDep):
+    if user.role not in {"reviewer", "admin"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Reviewer or admin access is required",
+        )
+    return user
+
+ReviewerAdminDep = Annotated[User, Depends(is_reviewer_or_admin_dep)]

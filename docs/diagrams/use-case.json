@@ -15,9 +15,8 @@
     {
       "name": "Edit or Resubmit Research",
       "actors": ["Researcher"],
-      "includes": ["Review Updated Submission", "Upload Updated File"]
+      "includes": ["Upload Updated File"]
     },
-    {"name": "Review Updated Submission"},
     {"name": "Upload Updated File"},
     {
       "name": "Manage Submissions",

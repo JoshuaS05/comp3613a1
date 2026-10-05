@@ -1,0 +1,59 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Submission Status{% endblock %}
+
+{% block subpage_content %}
+<section class="container-fluid py-2 submission-page">
+  <p class="research-eyebrow mb-1">My Submissions</p>
+  <h1 class="h3 mb-4">{{ submission.title }}</h1>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <section class="tracking-section mb-4">
+        <h2 class="h5 mb-3">Submission details</h2>
+        <dl class="row mb-0">
+          <dt class="col-sm-3">Type</dt>
+          <dd class="col-sm-9">{{ submission.submission_type }}</dd>
+          <dt class="col-sm-3">Status</dt>
+          <dd class="col-sm-9"><span class="submission-status" data-status="{{ submission.status }}">{{ submission.status }}</span></dd>
+          <dt class="col-sm-3">Submitted</dt>
+          <dd class="col-sm-9">{{ submission.submitted_at.strftime("%Y-%m-%d %H:%M UTC") }}</dd>
+        </dl>
+      </section>
+
+      <section class="tracking-section mb-4">
+        <h2 class="h5 mb-3">Status timeline</h2>
+        <ol class="status-timeline">
+          {% for step in status_timeline %}
+          <li class="{{ step.state }}">{{ step.label }}</li>
+          {% endfor %}
+        </ol>
+      </section>
+
+      {% if review %}
+      <section class="tracking-section">
+        <h2 class="h5 mb-2">Feedback</h2>
+        <p class="text-break mb-0">{{ review.feedback }}</p>
+      </section>
+      {% endif %}
+    </div>
+
+    <aside class="col-lg-5">
+      <section class="tracking-section presentation-details">
+        <h2 class="h5 mb-3">Presentation details</h2>
+        {% if presentation %}
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Date</dt>
+          <dd class="col-sm-8">{{ presentation.date.strftime("%b %d, %Y") }}</dd>
+          <dt class="col-sm-4">Time</dt>
+          <dd class="col-sm-8">{{ presentation.time.strftime("%I:%M %p") }}</dd>
+          <dt class="col-sm-4">Location</dt>
+          <dd class="col-sm-8">{{ presentation.location }}</dd>
+        </dl>
+        {% else %}
+        <p class="text-muted mb-0">Presentation details will appear here when scheduled.</p>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+</section>
+{% endblock %}

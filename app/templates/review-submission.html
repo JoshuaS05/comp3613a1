@@ -1,0 +1,98 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Review Submission{% endblock %}
+
+{% block subpage_content %}
+<section class="container-fluid py-2 submission-page">
+  <p class="research-eyebrow mb-1">Manage Submissions</p>
+  <h1 class="h3 mb-4">{{ submission.title }}</h1>
+
+  <section class="submission-form mb-4">
+    <h2 class="h5 mb-3">Submission details</h2>
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Type</dt>
+      <dd class="col-sm-9">{{ submission.submission_type }}</dd>
+      <dt class="col-sm-3">Status</dt>
+      <dd class="col-sm-9"><span class="submission-status" data-status="{{ submission.status }}">{{ submission.status }}</span></dd>
+      <dt class="col-sm-3">Submitted</dt>
+      <dd class="col-sm-9">{{ submission.submitted_at.strftime("%Y-%m-%d %H:%M UTC") }}</dd>
+      <dt class="col-sm-3">Abstract</dt>
+      <dd class="col-sm-9 text-break">{{ submission.abstract }}</dd>
+      <dt class="col-sm-3">Research file</dt>
+      <dd class="col-sm-9"><a href="{{ url_for('review_submission_file', submission_id=submission.id) }}" target="_blank" rel="noreferrer">Open submitted file</a></dd>
+    </dl>
+  </section>
+
+  {% if submission.status in ["Submitted", "Under Review"] %}
+  <form class="submission-form" method="POST" action="{{ url_for('save_review', submission_id=submission.id) }}">
+    <div class="mb-3">
+      <label class="form-label" for="feedback">Feedback</label>
+      <textarea class="form-control" id="feedback" name="feedback" rows="5" required>{{ review.feedback if review else "" }}</textarea>
+    </div>
+
+    <fieldset class="mb-4">
+      <legend class="form-label">Decision</legend>
+      {% for value in ["Revision Required", "Accepted", "Rejected"] %}
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="decision" id="decision-{{ loop.index }}" value="{{ value }}" {% if review and review.decision == value %}checked{% endif %} required>
+        <label class="form-check-label" for="decision-{{ loop.index }}">{{ value }}</label>
+      </div>
+      {% endfor %}
+    </fieldset>
+
+    <div class="d-flex justify-content-end gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('review_queue_view') }}">Cancel</a>
+      <button class="btn btn-primary" type="submit">Save review</button>
+    </div>
+  </form>
+  {% else %}
+  <section class="submission-form mb-4" aria-label="Saved review">
+    <h2 class="h5">Review decision</h2>
+    <p class="mb-2"><strong>{{ review.decision }}</strong></p>
+    <p class="mb-0 text-break">{{ review.feedback }}</p>
+  </section>
+  {% endif %}
+
+  {% if submission.status in ["Accepted", "Scheduled"] %}
+  <form class="submission-form presentation-schedule-form" method="POST" action="{{ url_for('schedule_presentation', submission_id=submission.id) }}">
+    <h2 class="h5 mb-3">Presentation schedule</h2>
+    <div class="mb-3">
+      <label class="form-label" for="presentation-date">Date</label>
+      <input class="form-control" type="date" id="presentation-date" name="presentation_date" value="{{ presentation.date.isoformat() if presentation else '' }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="presentation-time">Time</label>
+      <div class="presentation-time-control" data-time-picker>
+        <input class="form-control" type="time" id="presentation-time" name="presentation_time" value="{{ presentation.time.strftime('%H:%M') if presentation else '' }}" required data-time-input>
+        <div class="analog-time-picker mt-2" data-analog-picker hidden>
+          <div class="analog-time-picker__readout">
+            <output class="analog-time-picker__time" data-time-display aria-live="polite">--:--</output>
+            <div class="analog-time-picker__period" role="group" aria-label="Choose AM or PM">
+              <button type="button" data-period="AM" aria-pressed="false">AM</button>
+              <button type="button" data-period="PM" aria-pressed="false">PM</button>
+            </div>
+          </div>
+          <div class="analog-time-picker__parts" role="group" aria-label="Choose hour or minute">
+            <button type="button" data-time-part="hour" aria-pressed="true">Hour</button>
+            <button type="button" data-time-part="minute" aria-pressed="false">Minute</button>
+          </div>
+          <div class="analog-time-picker__face" data-clock-face role="group" aria-label="Select hour"></div>
+          <div class="analog-time-picker__minute-adjust" aria-label="Fine tune minutes">
+            <button type="button" data-minute-adjust="-1" aria-label="One minute earlier" disabled>&minus;</button>
+            <output data-minute-display>--</output>
+            <button type="button" data-minute-adjust="1" aria-label="One minute later" disabled>+</button>
+          </div>
+          <p class="analog-time-picker__hint" data-time-hint>Select an hour, minute, and AM/PM.</p>
+        </div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="form-label" for="presentation-location">Location</label>
+      <input class="form-control" type="text" id="presentation-location" name="location" value="{{ presentation.location if presentation else '' }}" required>
+    </div>
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-primary" type="submit">{{ "Update schedule" if presentation else "Schedule presentation" }}</button>
+    </div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

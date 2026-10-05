@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 
@@ -23,7 +24,7 @@ def _ensure_models_loaded() -> None:
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    """Create database tables (drops existing by default) and seed demo users."""
+    """Create database tables (drops existing by default) and seed workflow demo data."""
     from app.config import get_settings
     from app.database import drop_all, ensure_db_and_tables
 
@@ -47,12 +48,18 @@ def cmd_init(args: argparse.Namespace) -> None:
 
 
 def cmd_seed(args: argparse.Namespace) -> None:
-    """Insert demo users.
+    """Insert demo users and a small Research Platform workflow dataset.
 
     bob / bobpass       (regular_user)
     admin / adminpass   (admin)
     """
     from app.database import ensure_db_and_tables, get_cli_session
+    from app.models.presentation import Presentation
+    from app.models.review import Review
+    from app.models.submission import Submission
+    from app.repositories.presentation import PresentationRepository
+    from app.repositories.review import ReviewRepository
+    from app.repositories.submission import SubmissionRepository
     from app.repositories.user import UserRepository
     from app.schemas.user import AdminCreate, RegularUserCreate
     from app.utilities.security import encrypt_password
@@ -67,6 +74,7 @@ def cmd_seed(args: argparse.Namespace) -> None:
 
     created = 0
     skipped = 0
+    created_submissions = 0
     with get_cli_session() as session:
         repo = UserRepository(session)
         for username, email, password, role in demo_users:
@@ -86,9 +94,136 @@ def cmd_seed(args: argparse.Namespace) -> None:
             print(f"  create {username} ({role})")
             created += 1
 
-    print(f"Seed done — created {created}, skipped {skipped}.")
-    print("Login with bob/bobpass or admin/adminpass")
+        bob = repo.get_by_username("bob")
+        admin = repo.get_by_username("admin")
+        if bob is None or admin is None:
+            raise RuntimeError(
+                "Demo researcher and admin users must exist before seeding submissions"
+            )
 
+        submission_repo = SubmissionRepository(session)
+        review_repo = ReviewRepository(session)
+        presentation_repo = PresentationRepository(session)
+        existing_titles = {
+            submission.title
+            for submission in submission_repo.list_for_researcher(bob.id)
+        }
+        demo_submissions = [
+            {
+                "title": "AI in Education",
+                "abstract": "A sample study of student experiences with AI-supported learning tools.",
+                "submission_type": "Poster",
+                "status": "Submitted",
+                "days_ago": 1,
+                "file_name": "demo-ai-in-education.txt",
+                "file_content": "Research Platform sample submission: AI in Education.\n",
+                "review": None,
+                "presentation": None,
+            },
+            {
+                "title": "Smart Campus",
+                "abstract": "A sample evaluation of energy and mobility improvements on campus.",
+                "submission_type": "Presentation",
+                "status": "Revision Required",
+                "days_ago": 6,
+                "file_name": "demo-smart-campus.txt",
+                "file_content": "Research Platform sample submission: Smart Campus.\n",
+                "review": {
+                    "decision": "Revision Required",
+                    "feedback": "Please clarify the evaluation method and add the participant count.",
+                },
+                "presentation": None,
+            },
+            {
+                "title": "Green Energy",
+                "abstract": "A sample analysis of renewable energy adoption in local institutions.",
+                "submission_type": "Poster",
+                "status": "Accepted",
+                "days_ago": 12,
+                "file_name": "demo-green-energy.txt",
+                "file_content": "Research Platform sample submission: Green Energy.\n",
+                "review": {
+                    "decision": "Accepted",
+                    "feedback": "The methods and findings are clear. Accepted for presentation scheduling.",
+                },
+                "presentation": None,
+            },
+            {
+                "title": "Health Study",
+                "abstract": "A sample survey of access to community health resources.",
+                "submission_type": "Presentation",
+                "status": "Scheduled",
+                "days_ago": 20,
+                "file_name": "demo-health-study.txt",
+                "file_content": "Research Platform sample submission: Health Study.\n",
+                "review": {
+                    "decision": "Accepted",
+                    "feedback": "Accepted. Please present the findings and discuss study limitations.",
+                },
+                "presentation": {
+                    "date": date.today() + timedelta(days=21),
+                    "time": time(10, 0),
+                    "location": "Research Hall, Room 204",
+                },
+            },
+        ]
+
+        uploads_directory = Path("uploads")
+        uploads_directory.mkdir(parents=True, exist_ok=True)
+        for item in demo_submissions:
+            if item["title"] in existing_titles:
+                print(f"  skip  demo submission {item['title']} (already exists)")
+                continue
+
+            file_path = uploads_directory / item["file_name"]
+            if not file_path.exists():
+                file_path.write_text(item["file_content"], encoding="utf-8")
+
+            submission = submission_repo.create(
+                Submission(
+                    title=item["title"],
+                    abstract=item["abstract"],
+                    submission_type=item["submission_type"],
+                    file_path=str(file_path),
+                    status=item["status"],
+                    submitted_at=datetime.now(timezone.utc)
+                    - timedelta(days=item["days_ago"]),
+                    researcher_id=bob.id,
+                )
+            )
+            existing_titles.add(submission.title)
+            created_submissions += 1
+
+            review_data = item["review"]
+            if review_data is not None:
+                review_repo.save(
+                    Review(
+                        submission_id=submission.id,
+                        reviewer_id=admin.id,
+                        feedback=review_data["feedback"],
+                        decision=review_data["decision"],
+                        reviewed_at=datetime.now(timezone.utc)
+                        - timedelta(days=max(item["days_ago"] - 1, 0)),
+                    ),
+                    submission,
+                )
+
+            presentation_data = item["presentation"]
+            if presentation_data is not None:
+                presentation_repo.save(
+                    Presentation(
+                        submission_id=submission.id,
+                        date=presentation_data["date"],
+                        time=presentation_data["time"],
+                        location=presentation_data["location"],
+                    ),
+                    submission,
+                )
+    print(f"Seed users — created {created}, skipped {skipped}.")
+    print(
+        f"Workflow demo data — created {created_submissions} submissions if not already present."
+    )
+    print("Login with bob/bobpass or admin/adminpass")
 
 def cmd_run(args: argparse.Namespace) -> None:
     """Start the FastAPI app with Uvicorn."""
@@ -221,7 +356,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_init = sub.add_parser(
         "init",
-        help="Create DB tables and seed demo users (drops existing tables by default)",
+        help="Create DB tables and seed workflow demo data (drops existing tables by default)",
     )
     p_init.add_argument(
         "--no-drop",
@@ -239,7 +374,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_seed = sub.add_parser(
         "seed",
-        help="Insert demo users only (idempotent; also runs as part of init)",
+        help="Insert demo users and workflow records (idempotent; also runs as part of init)",
     )
     p_seed.set_defaults(func=cmd_seed)
 
