@@ -257,7 +257,9 @@ note: Route delegates to SubmissionService; redirect corrected to existing user_
 
 Phase 6. Public Render URL (not localhost). Markers open this to mark the three workflows.
 
-https://
+https://faststarter-w55k.onrender.com
+
+Phase 6 deployment: the free Python web service and PostgreSQL 16 database are deployed in Render's Oregon region. The service builds from the `main` branch with `pip install -r requirements.txt` and starts with the non-destructive `python manage.py init --no-drop` command from `render.yaml`. The production deployment completed successfully, seeded the marker accounts and workflow data, and `GET /health` returned `{"ok":true}`. Database credentials and application secrets are not included in this report.
 
 ## Logins
 
