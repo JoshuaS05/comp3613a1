@@ -151,6 +151,71 @@
       "response": []
     },
     {
+      "name": "Submit Research - Missing Title.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Missing title returns HTTP 422\", function () {\r\n    pm.response.to.have.status(422);\r\n});\r\n\r\npm.test(\"Validation error is returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.detail).to.exist;\r\n    pm.expect(data.detail).to.be.an(\"array\");\r\n\r\n    const titleError = data.detail.some(function (error) {\r\n        return error.loc && error.loc.includes(\"title\");\r\n    });\r\n\r\n    pm.expect(titleError).to.be.true;\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "title",
+              "value": "Postman Test Research",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "abstract",
+              "value": "Testing research submission through Postman.",
+              "type": "text"
+            },
+            {
+              "key": "submission_type",
+              "value": "Poster",
+              "type": "text"
+            },
+            {
+              "key": "research_file",
+              "type": "file",
+              "src": [
+                "COMP3605_Tutorial_06.pdf"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/submissions",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "submissions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Get My Submissions",
       "event": [
         {
@@ -234,6 +299,42 @@
       "response": []
     },
     {
+      "name": "Cannot Track Another User's Submission",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Another user cannot track the submission - HTTP 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Submission not found error is returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.detail).to.eql(\"Submission not found\");\r\n});\r\n\r\npm.test(\"Private submission details are not exposed\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data).to.not.have.property(\"submission\");\r\n    pm.expect(data).to.not.have.property(\"review\");\r\n    pm.expect(data).to.not.have.property(\"presentation\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/submissions/{{submissionId}}/tracking",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "submissions",
+            "{{submissionId}}",
+            "tracking"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Get Review Queue",
       "event": [
         {
@@ -287,6 +388,51 @@
         "body": {
           "mode": "raw",
           "raw": "\r\n{\r\n    \"feedback\": \"Postman review approved\",\r\n    \"decision\": \"Accepted\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/reviews/{{submissionId}}/decision",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "reviews",
+            "{{submissionId}}",
+            "decision"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Review Decision",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Invalid review decision returns HTTP 422\", function () {\r\n    pm.response.to.have.status(422);\r\n});\r\n\r\npm.test(\"Correct validation error is returned\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.detail).to.eql(\"Invalid review decision\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\r\n{\r\n    \"feedback\": \"Testing an invalid review decision\",\r\n    \"decision\": \"Pending\"\r\n}\r\n",
           "options": {
             "raw": {
               "language": "json"
@@ -391,7 +537,7 @@
           ]
         },
         "url": {
-          "raw": "http://127.0.0.1:5000/login",
+          "raw": "http://127.0.0.1:5000/login?username={{researcherUsername}}&password={{researcherPassword}}",
           "protocol": "http",
           "host": [
             "127",
@@ -402,6 +548,16 @@
           "port": "5000",
           "path": [
             "login"
+          ],
+          "query": [
+            {
+              "key": "username",
+              "value": "{{researcherUsername}}"
+            },
+            {
+              "key": "password",
+              "value": "{{researcherPassword}}"
+            }
           ]
         }
       },

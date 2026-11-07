@@ -64,3 +64,29 @@ def test_get_editable_submission():
 
     assert result == submission
     repository.get_for_researcher.assert_called_once_with(1, 1)
+
+
+def test_cannot_edit_accepted_submission():
+    repository = Mock()
+
+    submission = Mock()
+    submission.id = 1
+    submission.researcher_id = 1
+    submission.status = "Accepted"
+
+    repository.get_for_researcher.return_value = submission
+
+    service = SubmissionService(
+        submission_repository=repository
+    )
+
+    with pytest.raises(
+        LookupError,
+        match="Editable submission not found"
+    ):
+        service.get_editable_submission(
+            submission_id=1,
+            researcher_id=1
+        )
+
+    repository.get_for_researcher.assert_called_once_with(1, 1)

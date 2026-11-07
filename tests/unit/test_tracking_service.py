@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 from app.services.tracking_service import TrackingService
 
+import pytest
 
 def test_tracking_scheduled_submission():
     submission_repository = Mock()
@@ -54,3 +55,31 @@ def test_tracking_scheduled_submission():
     ]
 
     submission_repository.get_for_researcher.assert_called_once_with(1, 1)
+
+
+def test_cannot_track_another_researchers_submission():
+    submission_repository = Mock()
+    review_repository = Mock()
+    presentation_repository = Mock()
+
+    # Ownership-filtered lookup returns no submission.
+    submission_repository.get_for_researcher.return_value = None
+
+    service = TrackingService(
+        submission_repository=submission_repository,
+        review_repository=review_repository,
+        presentation_repository=presentation_repository,
+    )
+
+    with pytest.raises(
+        LookupError,
+        match="Submission not found"
+    ):
+        service.get_submission_details(
+            submission_id=1,
+            researcher_id=2,
+        )
+
+    submission_repository.get_for_researcher.assert_called_once_with(1, 2)
+    review_repository.get_for_submission.assert_not_called()
+    presentation_repository.get_for_submission.assert_not_called()
