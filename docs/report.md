@@ -378,3 +378,196 @@ Course skills are hashed at export and compared to `.agents/skills.lock.json`. D
 - Status: **pass**
 - Root: `e84cd692d0b85eefe546385661958c27d07e8be6c5176a82012f68ccff5c8beb`
 - none
+
+## Test
+
+### User Acceptance Test Plan
+### UAT-01: Submit Research
+
+**Actor:** Researcher
+
+**Pre-conditions**
+- The Research Platform is running.
+- The researcher is logged into a valid researcher account.
+- The researcher has a valid research file available for upload.
+
+**Test Steps**
+1. Navigate to **My Research**.
+2. Click **Add research**.
+3. Enter a valid **Title**.
+4. Enter the research **Abstract**.
+5. Select a research **Type**: **Poster** or **Presentation**.
+6. Click **Choose File** and select the research document.
+7. Click **Submit**.
+8. Navigate to or view the **My Research** page.
+
+**Test Criteria**
+- The research submission is successfully created.
+- The submitted research appears in the **My Research** table.
+- The correct **Title** is displayed.
+- The selected **Type** is displayed correctly.
+- The submission has the initial status **Submitted**.
+- The researcher can select **View** to access the submitted research details.
+
+**Success:** ☐ Pass ☐ Fail
+
+
+#### UAT-02 — Manage Submission
+
+**Actor:** Reviewer/Admin
+
+**Pre-conditions**
+- Research Platform is running.
+- Reviewer/Admin is logged into a valid account.
+- At least one research submission exists with the status **Submitted**.
+
+**Test Steps**
+1. Navigate to the submissions management area.
+2. Select a submitted research item.
+3. Open the submission details.
+4. Review the submitted research information.
+5. Update the submission status or decision as required.
+6. Save/confirm the changes.
+
+**Test Criteria**
+- The Reviewer/Admin can access submitted research.
+- The correct submission details are displayed.
+- The Reviewer/Admin can update the submission status or decision.
+- The updated information is saved successfully.
+- The new status is displayed correctly after the update.
+
+**Success:** ☐ Pass ☐ Fail
+
+
+#### UAT-03 — Track Submission and Presentation Status
+
+**Actor:** Researcher
+
+**Pre-conditions**
+- Research Platform is running.
+- Researcher is logged into a valid account.
+- The researcher has at least one existing submission.
+- The submission has already been reviewed or updated by a Reviewer/Admin.
+
+**Test Steps**
+1. Navigate to **My Research**.
+2. Locate the previously submitted research item.
+3. View the submission details.
+4. Check the current submission status.
+5. Check any available presentation information or presentation status.
+
+**Test Criteria**
+- The researcher can view the current status of the submission.
+- The displayed status matches the latest Reviewer/Admin update.
+- Any available presentation information is displayed correctly.
+- The researcher can clearly determine the current state of the submission and presentation.
+
+**Success:** ☐ Pass ☐ Fail
+
+### Unit Test Plan
+### Unit Test Plan
+
+#### Unit Test 1 — Submit Research
+**Test:** `test_submit_research()`
+
+**Input:**  
+Valid title, abstract, submission type, research file, and researcher ID.
+
+**Expected Output:**  
+A new submission is created with the supplied information and its status is set to **Submitted**.
+
+---
+
+#### Unit Test 2 — Editable Submission
+**Test:** `test_get_editable_submission()`
+
+**Input:**  
+A submission belonging to the researcher with the status **Revision Required**.
+
+**Expected Output:**  
+The requested submission is returned and can be edited.
+
+---
+
+#### Unit Test 3 — Invalid Review Decision
+**Test:** `test_invalid_review_decision()`
+
+**Input:**  
+A review decision other than **Revision Required**, **Accepted**, or **Rejected**.
+
+**Expected Output:**  
+A `ValueError` is raised with the message **"Invalid review decision"**.
+
+---
+
+#### Unit Test 4 — Track Scheduled Submission
+**Test:** `test_tracking_scheduled_submission()`
+
+**Input:**  
+A researcher requests the details of a submission with status **Scheduled**.
+
+**Expected Output:**  
+The timeline contains:
+
+**Submitted → Under Review → Accepted → Scheduled**
+
+and **Scheduled** is marked as the current state.
+
+### Integration Test Plan
+### Integration Test Plan
+
+#### Integration Test 1 — Create and Retrieve Submission
+**Test:** `test_create_and_retrieve_submission()`
+
+**Dependencies:**  
+`SubmissionService.submit_research()`  
+`SubmissionRepository.create()`  
+`SubmissionRepository.get_for_researcher()`  
+Database
+
+**Description:**  
+Verify that when a researcher submits research, the submission is successfully stored in the database and can then be retrieved for that researcher with the correct title, type, status, and researcher ID.
+
+---
+
+#### Integration Test 2 — Save Review and Update Submission Status
+**Test:** `test_review_updates_submission_status()`
+
+**Dependencies:**  
+`ReviewService.save_review()`  
+`ReviewRepository.save()`  
+Submission record  
+Database
+
+**Description:**  
+Verify that when a reviewer saves a valid review decision, the review is stored and the related submission status is updated to the selected decision.
+
+---
+
+#### Integration Test 3 — Schedule Accepted Presentation
+**Test:** `test_schedule_presentation_updates_submission()`
+
+**Dependencies:**  
+`PresentationService.schedule_presentation()`  
+`PresentationRepository.save()`  
+Review record  
+Submission record  
+Database
+
+**Description:**  
+Verify that an accepted submission can be scheduled for presentation, the presentation details are stored, and the related submission status changes to **Scheduled**.
+
+---
+
+#### Integration Test 4 — Track Submission Details
+**Test:** `test_tracking_returns_review_and_presentation()`
+
+**Dependencies:**  
+`TrackingService.get_submission_details()`  
+`SubmissionRepository`  
+`ReviewRepository`  
+`PresentationRepository`  
+Database
+
+**Description:**  
+Verify that the tracking service retrieves the correct submission, review, presentation information, and timeline for the logged-in researcher.

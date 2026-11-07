@@ -39,3 +39,28 @@ def test_submit_research(tmp_path):
     assert submission.researcher_id == 1
 
     repository.create.assert_called_once()
+
+    
+import pytest
+
+def test_get_editable_submission():
+    repository = Mock()
+
+    submission = Mock()
+    submission.id = 1
+    submission.researcher_id = 1
+    submission.status = "Revision Required"
+
+    repository.get_for_researcher.return_value = submission
+
+    service = SubmissionService(
+        submission_repository=repository
+    )
+
+    result = service.get_editable_submission(
+        submission_id=1,
+        researcher_id=1
+    )
+
+    assert result == submission
+    repository.get_for_researcher.assert_called_once_with(1, 1)

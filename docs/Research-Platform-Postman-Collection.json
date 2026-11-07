@@ -1,0 +1,488 @@
+{
+  "info": {
+    "_postman_id": "345d0a13-5757-4356-9702-6c72d9cc9ad9",
+    "name": "Research Platform - Assignment 2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52609102",
+    "_collection_link": "https://go.postman.co/collection/52609102-345d0a13-5757-4356-9702-6c72d9cc9ad9?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "API Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Health endpoint returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Application reports healthy status\", function () {\r\n    const response = pm.response.json();\r\n    pm.expect(response.ok).to.eql(true);\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/health",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Researcher Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Login returns HTTP 303\", function () {\r\n    pm.response.to.have.status(303);\r\n});\r\n\r\npm.test(\"User redirects to dashboard\", function () {\r\n    const location = pm.response.headers.get(\"Location\");\r\n    pm.expect(location).to.include(\"/app\");\r\n});\r\n\r\npm.test(\"Authentication cookie is created\", function () {\r\n    const setCookie = pm.response.headers.get(\"Set-Cookie\");\r\n    pm.expect(setCookie).to.include(\"access_token=\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "username",
+              "value": "{{researcherUsername}}"
+            },
+            {
+              "key": "password",
+              "value": "{{researcherPassword}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/login",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Research",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Submission returns HTTP 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Submission has correct information\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.title).to.eql(\"Postman Test Research\");\r\n    pm.expect(data.abstract).to.eql(\r\n        \"Testing research submission through Postman.\"\r\n    );\r\n    pm.expect(data.submission_type).to.eql(\"Poster\");\r\n});\r\n\r\npm.test(\"Submission status is Submitted\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.status).to.eql(\"Submitted\");\r\n});\r\n\r\npm.test(\"Submission has an ID and timestamp\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.id).to.be.a(\"number\");\r\n    pm.expect(data.submitted_at).to.exist;\r\n});\r\n\r\n// Save the submission ID for later API tests\r\nif (pm.response.code === 201) {\r\n    const data = pm.response.json();\r\n    pm.collectionVariables.set(\"submissionId\", data.id);\r\n}\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "title",
+              "value": "Postman Test Research",
+              "type": "text"
+            },
+            {
+              "key": "abstract",
+              "value": "Testing research submission through Postman.",
+              "type": "text"
+            },
+            {
+              "key": "submission_type",
+              "value": "Poster",
+              "type": "text"
+            },
+            {
+              "key": "research_file",
+              "type": "file",
+              "src": [
+                "COMP3605_Tutorial_06.pdf"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/submissions",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "submissions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get My Submissions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Submissions API returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Response is a JSON array\", function () {\r\n    const data = pm.response.json();\r\n    pm.expect(data).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"Each submission contains required fields\", function () {\r\n    const data = pm.response.json();\r\n\r\n    data.forEach(function (submission) {\r\n        pm.expect(submission).to.have.property(\"id\");\r\n        pm.expect(submission).to.have.property(\"title\");\r\n        pm.expect(submission).to.have.property(\"abstract\");\r\n        pm.expect(submission).to.have.property(\"submission_type\");\r\n        pm.expect(submission).to.have.property(\"status\");\r\n        pm.expect(submission).to.have.property(\"submitted_at\");\r\n    });\r\n});\r\n    "
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/submissions",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "submissions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Login returns HTTP 303\", function () {\r\n    pm.response.to.have.status(303);\r\n});\r\n\r\npm.test(\"User redirects to dashboard\", function () {\r\n    const location = pm.response.headers.get(\"Location\");\r\n    pm.expect(location).to.include(\"/admin\");\r\n});\r\n\r\npm.test(\"Authentication cookie is created\", function () {\r\n    const setCookie = pm.response.headers.get(\"Set-Cookie\");\r\n    pm.expect(setCookie).to.include(\"access_token=\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "username",
+              "value": "{{adminUsername}}"
+            },
+            {
+              "key": "password",
+              "value": "{{adminPassword}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/login",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Review Queue",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Review Queue returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Review Queue returns a JSON array\", function () {\r\n    const data = pm.response.json();\r\n    pm.expect(data).to.be.an(\"array\");\r\n});\r\n\r\npm.test(\"Review Queue contains valid submissions\", function () {\r\n    const data = pm.response.json();\r\n\r\n    data.forEach(function (submission) {\r\n        pm.expect(submission).to.have.property(\"id\");\r\n        pm.expect(submission).to.have.property(\"title\");\r\n        pm.expect(submission).to.have.property(\"status\");\r\n        pm.expect(submission).to.have.property(\"submission_type\");\r\n    });\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/reviews/queue",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "reviews",
+            "queue"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Accept Submission",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Review decision returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Review decision is Accepted\", function () {\r\n    const data = pm.response.json();\r\n    pm.expect(data.decision).to.eql(\"Accepted\");\r\n});\r\n\r\npm.test(\"Review feedback is saved correctly\", function () {\r\n    const data = pm.response.json();\r\n    pm.expect(data.feedback).to.eql(\"Postman review approved\");\r\n});\r\n\r\npm.test(\"Review belongs to the correct submission\", function () {\r\n    const data = pm.response.json();\r\n    const submissionId = pm.collectionVariables.get(\"submissionId\");\r\n\r\n    pm.expect(String(data.submission_id)).to.eql(String(submissionId));\r\n    pm.expect(data.id).to.be.a(\"number\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\r\n{\r\n    \"feedback\": \"Postman review approved\",\r\n    \"decision\": \"Accepted\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/reviews/{{submissionId}}/decision",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "reviews",
+            "{{submissionId}}",
+            "decision"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Schedule Presentation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Scheduling returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Presentation has correct date and time\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.date).to.eql(\"2026-11-20\");\r\n    pm.expect(data.time).to.include(\"10:00\");\r\n});\r\n\r\npm.test(\"Presentation location is saved\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.location).to.eql(\"Conference Room A\");\r\n});\r\n\r\npm.test(\"Presentation belongs to correct submission\", function () {\r\n    const data = pm.response.json();\r\n    const submissionId = pm.collectionVariables.get(\"submissionId\");\r\n\r\n    pm.expect(String(data.submission_id)).to.eql(String(submissionId));\r\n    pm.expect(data.id).to.be.a(\"number\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\r\n{\r\n    \"presentation_date\": \"2026-11-20\",\r\n    \"presentation_time\": \"10:00:00\",\r\n    \"location\": \"Conference Room A\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/reviews/{{submissionId}}/schedule",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "reviews",
+            "{{submissionId}}",
+            "schedule"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Researcher Login (Tracking)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Login returns HTTP 303\", function () {\r\n    pm.response.to.have.status(303);\r\n});\r\n\r\npm.test(\"User redirects to dashboard\", function () {\r\n    const location = pm.response.headers.get(\"Location\");\r\n    pm.expect(location).to.include(\"/app\");\r\n});\r\n\r\npm.test(\"Authentication cookie is created\", function () {\r\n    const setCookie = pm.response.headers.get(\"Set-Cookie\");\r\n    pm.expect(setCookie).to.include(\"access_token=\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "username",
+              "value": "{{researcherUsername}}"
+            },
+            {
+              "key": "password",
+              "value": "{{researcherPassword}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/login",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Track Submission",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Tracking returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Correct submission is returned\", function () {\r\n    const data = pm.response.json();\r\n    const submissionId = pm.collectionVariables.get(\"submissionId\");\r\n\r\n    pm.expect(String(data.submission.id)).to.eql(String(submissionId));\r\n    pm.expect(data.submission.status).to.eql(\"Scheduled\");\r\n});\r\n\r\npm.test(\"Researcher can see accepted review\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.review).to.not.be.null;\r\n    pm.expect(data.review.decision).to.eql(\"Accepted\");\r\n    pm.expect(data.review.feedback).to.eql(\"Postman review approved\");\r\n});\r\n\r\npm.test(\"Researcher can see presentation details\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.presentation).to.not.be.null;\r\n    pm.expect(data.presentation.date).to.eql(\"2026-11-20\");\r\n    pm.expect(data.presentation.time).to.include(\"10:00\");\r\n    pm.expect(data.presentation.location).to.eql(\"Conference Room A\");\r\n});\r\n\r\npm.test(\"Submission timeline includes Scheduled\", function () {\r\n    const data = pm.response.json();\r\n\r\n    pm.expect(data.timeline).to.be.an(\"array\");\r\n\r\n    const labels = data.timeline.map(step => step.label);\r\n    pm.expect(labels).to.include(\"Scheduled\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/submissions/{{submissionId}}/tracking",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "submissions",
+            "{{submissionId}}",
+            "tracking"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Researcher Cannot Access Review Queue",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "\r\npm.test(\"Researcher is denied access with HTTP 403\", function () {\r\n    pm.response.to.have.status(403);\r\n});\r\n\r\npm.test(\"Access denied response contains an error\", function () {\r\n    const data = pm.response.json();\r\n    pm.expect(data).to.have.property(\"detail\");\r\n});\r\n\r\npm.test(\"Researcher cannot retrieve the review queue\", function () {\r\n    const data = pm.response.json();\r\n    pm.expect(data).to.not.be.an(\"array\");\r\n});\r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/reviews/queue",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "reviews",
+            "queue"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "submissionId",
+      "value": ""
+    }
+  ]
+}
