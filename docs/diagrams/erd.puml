@@ -1,0 +1,56 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+entity "Researcher" as Researcher {
+  * id : int <<PK>>
+  --
+  name : string
+  email : string
+}
+
+entity "Submission" as Submission {
+  * id : int <<PK>>
+  --
+  title : string
+  abstract : string
+  submissionType : string
+  filePath : string
+  status : string
+  submittedAt : datetime
+  researcherId : int <<FK>>
+}
+
+entity "Reviewer" as Reviewer {
+  * id : int <<PK>>
+  --
+  name : string
+  email : string
+}
+
+entity "Review" as Review {
+  * id : int <<PK>>
+  --
+  feedback : string
+  decision : string
+  reviewedAt : datetime
+  submissionId : int <<FK, UK>>
+  reviewerId : int <<FK>>
+}
+
+entity "Presentation" as Presentation {
+  * id : int <<PK>>
+  --
+  date : date
+  time : time
+  location : string
+  submissionId : int <<FK, UK>>
+}
+
+Researcher ||--o{ Submission
+Submission ||--o| Review
+Reviewer ||--o{ Review
+Submission ||--o| Presentation
+@enduml
